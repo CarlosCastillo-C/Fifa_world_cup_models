@@ -152,10 +152,178 @@ Fifa = pd.merge(combined, data2, how = 'left', left_on = 'Team', right_on = 'Tea
 
 Does the fifa ranking have any correlation with style of play?
 
+
+Run a model with Rank as dependent variable and style of play stats as independent variables. 
+
+Like Possession, Passes Completed, Passes Attempted, Pass Accuracy, Shots on Target, Shots off Target, Fouls Committed, Fouls Suffered, Yellow Cards, Red Cards.
+
 ```{python}
 
+Fifa.head()
+
+Clean_fifa = Fifa.drop_duplicates(subset=['Team'])
+Clean_fifa = Clean_fifa.reset_index(drop=True)
+print(Clean_fifa)
+
+Clean_fifa.head(32)
 
 
 ```
 
 
+
+```{python}
+
+
+Clean_fifa.loc[Clean_fifa['Team'] == 'United States', 'Rank'] = 16
+Clean_fifa.loc[Clean_fifa['Team'] == 'Iran', 'Rank'] = 20
+
+Clean_fifa.loc[Clean_fifa['Team'] == 'United States', 'Total.Points'] = 1627
+Clean_fifa.columns = Clean_fifa.columns.str.replace(" ", "_")
+```
+
+```{python}
+
+y= Clean_fifa['Rank']
+x = sm.add_constant(Clean_fifa[['Possession', 'Total Attempts', 'Attempts Inside The Penalty Area', 'Yellow Cards', 'Red Cards', 'Fouls Against', 'Passes']])
+
+fit_1 = smf.ols(formula = 'Rank ~ Possession + Total_Attempts + Yellow_Cards + Red_Cards', data = Clean_fifa).fit()
+fit_1.summary()
+```
+
+Poession doesn't have any sort of significant correlation with the fifa ranking. 
+
+
+What does it say about goals, conceded goals and assists?
+```{python}
+
+fit_2 = smf.ols(formula = 'Rank ~ Number_Of_Goals + Conceded + Assists', data = Clean_fifa).fit()
+fit_2.summary()
+
+```
+
+Shows that number of goals and conceded have a significant correlation with fifa ranking. Assists don't but that can be due to number of things like penalties being counted as goals but not assists.
+
+
+What does this look like visually?
+
+```{python}
+
+plt.scatter(Clean_fifa['Number_Of_Goals'], Clean_fifa['Rank'])
+plt.figure(figsize=(10,6))
+plt.show()
+
+
+
+plt.scatter(Clean_fifa['Conceded'], Clean_fifa['Rank'])
+plt.figure(figsize=(10,6))
+plt.show()
+```
+
+
+What happens when we Subset and filter stats? What kind of teams do we have?
+
+Subet and Filter by possession
+```{python}
+
+High_Possesion  =Clean_fifa[(Clean_fifa['Possession']>=  55)]
+
+Mid_Possesion = Clean_fifa[(Clean_fifa['Possession'] <=  54) & (Clean_fifa['Possession'] >= 49)]
+
+Mid_to_Low_Possesion = Clean_fifa[(Clean_fifa['Possession'] <= 48) & (Clean_fifa['Possession'] >= 40)]
+Mid_to_Low_Possesion
+
+Low_Possesion = Clean_fifa[(Clean_fifa['Possession']< 40)]
+Low_Possesion
+
+```
+
+What do the rankings look like for these different possession styles?
+
+```{python}
+
+High_Possesion.nsmallest(3, 'Rank')[['Team', 'Rank', 'Possession']]
+
+Mid_Possesion.nsmallest(3, 'Rank')[['Team', 'Rank', 'Possession']]
+
+Mid_to_Low_Possesion.nsmallest(3, 'Rank')[['Team', 'Rank', 'Possession']]
+
+Low_Possesion.nsmallest(3, 'Rank')[['Team', 'Rank', 'Possession']]
+
+```
+
+This reiterates the regression results that possession doesn't have a significant correlation with fifa ranking.
+
+
+ Subet and Filter  by Goals
+
+```{python}
+
+
+High_Number_Goals = Clean_fifa[(Clean_fifa['Number_Of_Goals'] >=  2)]
+High_Number_Goals
+
+Mid_Number_Goals = Clean_fifa[(Clean_fifa['Number_Of_Goals'] <=  1.9) & (Clean_fifa['Number_Of_Goals'] >=1)]
+Mid_Number_Goals
+
+Low_Number_Goals = Clean_fifa[(Clean_fifa['Number_Of_Goals']< 1)]
+Low_Number_Goals
+```
+
+What do the ranks look here
+
+```{python}
+
+High_Number_Goals.nsmallest(3, 'Rank')[['Team', 'Rank', 'Number_Of_Goals']]
+
+Mid_Number_Goals.nsmallest(3, 'Rank')[['Team', 'Rank', 'Number_Of_Goals']]
+
+Low_Number_Goals.nsmallest(3, 'Rank')[['Team', 'Rank', 'Number_Of_Goals']]
+
+```
+
+
+
+Subet and Filter by conceded goals
+```{python}
+
+Good_defense = Clean_fifa[(Clean_fifa['Conceded'] <=  0.5)]
+Good_defense
+
+Mid_defense = Clean_fifa[(Clean_fifa['Conceded'] >=  0.51) & (Clean_fifa['Conceded'] <=1)]
+Mid_defense
+
+Mid_to_Terrible_defense = Clean_fifa[(Clean_fifa['Conceded'] >=  1.1) & (Clean_fifa['Conceded'] <= 2)]
+Mid_to_Terrible_defense
+
+Terrible_defense = Clean_fifa[(Clean_fifa['Conceded'] >= 2.1)]
+Terrible_defense
+
+```
+
+```{python}
+
+Good_defense.nsmallest(3, 'Rank')[['Team', 'Rank', 'Conceded']]
+
+Mid_defense.nsmallest(3, 'Rank')[['Team', 'Rank', 'Conceded']]
+
+Mid_to_Terrible_defense.nsmallest(3, 'Rank')[['Team', 'Rank', 'Conceded']]
+
+Terrible_defense.nsmallest(3, 'Rank')[['Team', 'Rank', 'Conceded']]
+
+
+```
+
+Subset and Filter by fouls against
+
+```{python}
+
+Passive_Teams = Clean_fifa[(Clean_fifa['Fouls_Against'] <=  10)]
+
+Balanced_Teams = Clean_fifa[(Clean_fifa['Fouls_Against'] > 10) &(Clean_fifa['Fouls_Against'] <= 13)]
+
+Aggressive_Teams = Clean_fifa[(Clean_fifa['Fouls_Against'] > 13)]
+
+```
+
+What kind of teams do we have? What regions? Is there a correlationm between region and style of play?
