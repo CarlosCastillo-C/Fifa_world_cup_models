@@ -17,4 +17,100 @@ data.info(verbose=True)
 
 
 
+pd.set_option('display.max_columns', None)
+data.head()
+data.columns
+
+data.head()
+data2 = pd.read_csv('~/Documents/Data_Wrangling/fifa_mens_rank.csv')
+
+data2.columns
+
+data2.head()
+
+data['possession team1'] = data['possession team1'].str.replace('%','', regex=False).astype(int)
+data['possession team2'] = data['possession team2'].str.replace('%','', regex=False).astype(int)
+data['possession in contest'] = data['possession in contest'].str.replace('%','', regex=False).astype(int)
+
+data.groupby(['team1', 'team2']).agg({'possession team1':['mean'], 'possession team2': ['mean']})
+
+
+Team1_col = [col for col in data if (re.search(r'team1',col )) or (col in ['date', 'hour', 'category'])]
+
+Team1_col
+
+Team1_data = data[Team1_col]
+
+Team1_data['team1'] = Team1_data['team1'].str.title()
+
+Team1_data
+
+Team2_col = [col for col in data if (re.search(r'team2',col )) or (col in ['date', 'hour', 'category'])]
+
+Team2_col
+
+Team2_data = data[Team2_col]
+
+Team2_data
+
+Team2_data['team2'] = Team2_data['team2'].str.title()
+
+Team2_data
+
+int_cols_1 = Team1_data.select_dtypes(include = 'int64').columns
+
+team1_mean_stats = Team1_data.groupby('team1', as_index=False)[int_cols_1].mean()
+
+team1_mean_stats = team1_mean_stats.round(2)
+
+team1_mean_stats
+
+
+int_cols_2 = Team2_data.select_dtypes(include = 'int64').columns
+
+team2_mean_stats = Team2_data.groupby('team2', as_index=False)[int_cols_2].mean()
+
+team2_mean_stats = team2_mean_stats.round(2)
+
+print(team2_mean_stats)
+
+
+team1_mean_stats = team1_mean_stats.rename(columns = lambda s: s.replace('team1', 'Team'))
+
+print(team1_mean_stats)
+
+team1_mean_stats.columns = team1_mean_stats.columns.str.replace(' Team','', regex=False)
+
+print(team1_mean_stats)
+
+team2_mean_stats = team2_mean_stats.rename(columns = lambda s: s.replace('team2', 'Team'))
+
+team2_mean_stats.columns = team2_mean_stats.columns.str.replace(' Team','', regex=False)
+
+print(team2_mean_stats)
+
+merge = pd.concat([team1_mean_stats, team2_mean_stats], axis=0).reset_index(drop=True)
+combined = merge.groupby('Team').mean()
+
+print(combined)
+
+data2['date'] = data2['date'].astype(str)
+
+data2.dtypes
+
+data2 = data2[data2['date'] == '2022']
+
+data2 
+
+data2.columns = data2.columns.str.title()
+
+combined.columns = combined.columns.str.title()
+
+combined
+
+Fifa = pd.merge(combined, data2, how = 'left', left_on = 'Team', right_on = 'Team')
+
+
+
+
 
